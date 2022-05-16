@@ -5,6 +5,9 @@ from cProfile import label
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
+gtkset = Gtk.Settings.get_default()
+gtkset.set_property("gtk-application-prefer-dark-theme", True)
+
 
 # cpufrequtils command HOOK
 # Reads current freqs data and puts it in a list.
@@ -75,32 +78,51 @@ def writeUndervolt(coreOffset, cacheOffset, gpuOffset, temp):
 
 class MainWindow(Gtk.Window):
     def __init__(self):
-        super().__init__(title="CPU Controller")
-        self.set_border_width(20)
+        super().__init__(title="Omega CPU Controller")
 
         # Offsets stack
-
-        label1 = Gtk.Label(label = "Temperature Target")
-        label2 = Gtk.Label(label = "Core Offset")
-        label3 = Gtk.Label(label = "GPU Offset")
-        label4 = Gtk.Label(label = "Cache Offset")
-
         gridOffsets = Gtk.Grid()
-        gridOffsets.attach(label1, 0, 0, 1, 1)
-        gridOffsets.attach(label2, 0, 1, 1, 1)
-        gridOffsets.attach(label3, 0, 2, 1, 1)
-        gridOffsets.attach(label4, 0, 3, 1, 1)
+        gridOffsets.set_border_width(20)
 
-        # Clocks stack
+        self.label1 = Gtk.Label(label = "Temperature Target")
+        self.label2 = Gtk.Label(label = "Core Offset")
+        self.label3 = Gtk.Label(label = "GPU Offset")
+        self.label4 = Gtk.Label(label = "Cache Offset")
 
-        label5 = Gtk.Label(label = "Cache Offset")
+        self.entry1 = Gtk.Entry()
+        self.entry2 = Gtk.Entry()
+        self.entry3 = Gtk.Entry()
+        self.entry4 = Gtk.Entry()
+
+        self.entry1.set_margin_left(25)
+        self.entry2.set_margin_left(25)
+        self.entry3.set_margin_left(25)
+        self.entry4.set_margin_left(25)
+
+        gridOffsets.attach(self.label1, 0, 1, 1, 1)
+        gridOffsets.attach(self.label2, 0, 2, 1, 1)
+        gridOffsets.attach(self.label3, 0, 3, 1, 1)
+        gridOffsets.attach(self.label4, 0, 4, 1, 1)
+
+        gridOffsets.attach(self.entry1, 2, 1, 1, 1)
+        gridOffsets.attach(self.entry2, 2, 2, 1, 1)
+        gridOffsets.attach(self.entry3, 2, 3, 1, 1)
+        gridOffsets.attach(self.entry4, 2, 4, 1, 1)
+
+        # TODO Clocks stack
+
+        # label5 = Gtk.Label(label = "Cache Offset")
         gridClocks = Gtk.Grid()
-        gridClocks.attach(label5, 0, 0, 1, 1)
+        gridClocks.set_border_width(20)
+        # gridClocks.attach(label5, 0, 0, 1, 1)
+
+        # TODO Settings
+
+        gridSettings = Gtk.Grid()
+        gridSettings.set_border_width(20)
+        gridAbout = Gtk.Grid()
 
         # Main window and stacking
-
-        grid = Gtk.Grid()
-        self.add(grid)
 
         stack = Gtk.Stack()
         stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
@@ -108,11 +130,18 @@ class MainWindow(Gtk.Window):
 
         stack.add_titled(gridOffsets, "offsets", "Voltage Offsets")
         stack.add_titled(gridClocks, "clocks", "Clock Speeds")
+        stack.add_titled(gridSettings, "settings", "Settings")
+        stack.add_titled(gridAbout, "about", "About")
 
         stack_switcher = Gtk.StackSwitcher()
         stack_switcher.set_stack(stack)
-        grid.attach(stack_switcher, 0, 0, 1, 1)
-        grid.attach(stack, 0, 1, 1, 1)
+
+        self.mainGrid = Gtk.Grid()
+        self.mainGrid.set_border_width(20)
+
+        self.mainGrid.attach(stack_switcher, 0, 0, 1, 1)
+        self.mainGrid.attach(stack, 0, 1, 1, 1)
+        self.add(self.mainGrid)
 
 
 win = MainWindow()
