@@ -5,7 +5,11 @@ from cProfile import label
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
+result = subprocess.run(['gsettings', 'get', 'org.gnome.desktop.interface', 'gtk-theme'], stdout=subprocess.PIPE)
+output = result.stdout.decode('utf-8')
+
 gtkset = Gtk.Settings.get_default()
+gtkset.set_property("gtk-theme-name", output)
 gtkset.set_property("gtk-application-prefer-dark-theme", True)
 
 
@@ -84,10 +88,15 @@ class MainWindow(Gtk.Window):
         gridOffsets = Gtk.Grid()
         gridOffsets.set_border_width(20)
 
-        self.label1 = Gtk.Label(label = "Temperature Target")
-        self.label2 = Gtk.Label(label = "Core Offset")
-        self.label3 = Gtk.Label(label = "GPU Offset")
-        self.label4 = Gtk.Label(label = "Cache Offset")
+        self.label1 = Gtk.Label(label = "Core offset")
+        self.label2 = Gtk.Label(label = "Cache offset")
+        self.label3 = Gtk.Label(label = "GPU offset")
+        self.label4 = Gtk.Label(label = "Temperature target")
+
+        self.label5 = Gtk.Label(label = "  (in mV)")
+        self.label6 = Gtk.Label(label = "  (in mV)")
+        self.label7 = Gtk.Label(label = "  (in mV)")
+        self.label8 = Gtk.Label(label = "  (in °C)")
 
         self.entry1 = Gtk.Entry()
         self.entry2 = Gtk.Entry()
@@ -99,15 +108,33 @@ class MainWindow(Gtk.Window):
         self.entry3.set_margin_left(25)
         self.entry4.set_margin_left(25)
 
+        self.applyButton1 = Gtk.Button.new_with_label("Apply changes")
+        self.applyButton1.connect("clicked", self.applyVoltages)
+        self.applyButton1.set_border_width(10)
+
         gridOffsets.attach(self.label1, 0, 1, 1, 1)
         gridOffsets.attach(self.label2, 0, 2, 1, 1)
         gridOffsets.attach(self.label3, 0, 3, 1, 1)
         gridOffsets.attach(self.label4, 0, 4, 1, 1)
 
-        gridOffsets.attach(self.entry1, 2, 1, 1, 1)
-        gridOffsets.attach(self.entry2, 2, 2, 1, 1)
-        gridOffsets.attach(self.entry3, 2, 3, 1, 1)
-        gridOffsets.attach(self.entry4, 2, 4, 1, 1)
+        gridOffsets.attach(self.entry1, 1, 1, 1, 1)
+        gridOffsets.attach(self.entry2, 1, 2, 1, 1)
+        gridOffsets.attach(self.entry3, 1, 3, 1, 1)
+        gridOffsets.attach(self.entry4, 1, 4, 1, 1)
+
+        gridOffsets.attach(self.label5, 2, 1, 1, 1)
+        gridOffsets.attach(self.label6, 2, 2, 1, 1)
+        gridOffsets.attach(self.label7, 2, 3, 1, 1)
+        gridOffsets.attach(self.label8, 2, 4, 1, 1)
+
+        gridOffsets.attach(self.applyButton1, 1, 5, 1, 1)
+
+        offsets = readUndervolt()
+
+        self.entry1.set_text(str(offsets[0]))
+        self.entry2.set_text(str(offsets[1]))
+        self.entry3.set_text(str(offsets[2]))
+        self.entry4.set_text(str(offsets[3]))
 
         # TODO Clocks stack
 
@@ -137,11 +164,17 @@ class MainWindow(Gtk.Window):
         stack_switcher.set_stack(stack)
 
         self.mainGrid = Gtk.Grid()
-        self.mainGrid.set_border_width(20)
+        self.mainGrid.set_border_width(10)
 
-        self.mainGrid.attach(stack_switcher, 0, 0, 1, 1)
-        self.mainGrid.attach(stack, 0, 1, 1, 1)
+        align = Gtk.Alignment(xscale=0, xalign=0)
+        align.add(stack)
+
+        self.mainGrid.attach(stack_switcher, 1, 0, 1, 1)
+        self.mainGrid.attach(align, 1, 1, 1, 1)
         self.add(self.mainGrid)
+
+    def applyVoltages(self, button):
+        print('Applied!')
 
 
 win = MainWindow()
