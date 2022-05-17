@@ -1,3 +1,4 @@
+from operator import length_hint
 import subprocess
 import gi
 from cProfile import label
@@ -74,6 +75,8 @@ def readUndervolt():
 # WRITES Desired undervolt using undervolt command in shell.
 def writeUndervolt(coreOffset, cacheOffset, gpuOffset, temp):
 
+    print("issued command, ", 'sudo', 'undervolt', '--core', str(coreOffset), '--cache', str(cacheOffset), '--gpu', str(gpuOffset), '--temp', str(temp))
+
     shellArgs = ['sudo', 'undervolt', '--core', str(coreOffset), '--cache', str(cacheOffset), '--gpu', str(gpuOffset), '--temp', str(temp)]
     subprocess.run(shellArgs)
 
@@ -98,10 +101,10 @@ class MainWindow(Gtk.Window):
         self.label7 = Gtk.Label(label = "  (in mV)")
         self.label8 = Gtk.Label(label = "  (in °C)")
 
-        self.entry1 = Gtk.Entry()
-        self.entry2 = Gtk.Entry()
-        self.entry3 = Gtk.Entry()
-        self.entry4 = Gtk.Entry()
+        self.entry1 = Gtk.Scale.new_with_range(Gtk.Orientation(0), -250.0, 250.0, 5.0)
+        self.entry2 = Gtk.Scale.new_with_range(Gtk.Orientation(0), -250.0, 250.0, 5.0)
+        self.entry3 = Gtk.Scale.new_with_range(Gtk.Orientation(0), -250.0, 250.0, 5.0)
+        self.entry4 = Gtk.Scale.new_with_range(Gtk.Orientation(0), 50.0, 100.0, 1.0)
 
         self.entry1.set_margin_left(25)
         self.entry2.set_margin_left(25)
@@ -129,12 +132,7 @@ class MainWindow(Gtk.Window):
 
         gridOffsets.attach(self.applyButton1, 1, 5, 1, 1)
 
-        offsets = readUndervolt()
-
-        self.entry1.set_text(str(offsets[0]))
-        self.entry2.set_text(str(offsets[1]))
-        self.entry3.set_text(str(offsets[2]))
-        self.entry4.set_text(str(offsets[3]))
+        self.updateVoltageSliders()
 
         # TODO Clocks stack
 
@@ -173,9 +171,18 @@ class MainWindow(Gtk.Window):
         self.mainGrid.attach(align, 1, 1, 1, 1)
         self.add(self.mainGrid)
 
-    def applyVoltages(self, button):
-        print('Applied!')
+    def applyVoltages(self, applyButton1):
+        writeUndervolt(int(self.entry1.get_value()), int(self.entry2.get_value()), int(self.entry3.get_value()), int(self.entry4.get_value()))
+        self.updateVoltageSliders()
 
+    def updateVoltageSliders(self):
+
+        offsets = readUndervolt()
+
+        self.entry1.set_value(offsets[0])
+        self.entry2.set_value(offsets[1])
+        self.entry3.set_value(offsets[2])
+        self.entry4.set_value(offsets[3])
 
 win = MainWindow()
 win.connect("destroy", Gtk.main_quit)
